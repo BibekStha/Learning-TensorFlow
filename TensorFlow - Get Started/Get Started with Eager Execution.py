@@ -1,3 +1,18 @@
+'''
+DOCSTRING!
+
+This program is a simple implementation of TensorFlow with eager execution enabled.
+
+Enabling eager execution removes the need to call tf.session().run().
+
+In other words, unlike in standard TensorFlow program where all codes are implemented
+only after caling run() function, enabling eager execution makes each line of code implement
+immediately along with tracking the changes.
+
+This is mostly helpful when you want to program with low level TF APIs.
+
+'''
+
 from __future__ import absolute_import, division, print_function
 
 import os
@@ -122,7 +137,7 @@ test_dataset = test_dataset.shuffle(1000)
 test_dataset = test_dataset.batch(32)
 
 # Evaluating the model on test dataset
-test_accuracy = tfe.metrics.Accuracy()
+test_accuracy = tfe.metrics.A ccuracy()
 
 for x, y in tfe.Iterator(test_dataset):
 	prediction = tf.argmax(model(x), axis = 1, output_type = tf.int32)
