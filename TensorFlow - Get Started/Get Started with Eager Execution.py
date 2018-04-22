@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import matplotlib.pyplot as plt
+import csv
 
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
@@ -13,8 +14,16 @@ tf.enable_eager_execution()
 train_dataset_url = 'http://download.tensorflow.org/data/iris_training.csv'
 train_dataset_fp = tf.keras.utils.get_file(fname = os.path.basename(train_dataset_url), origin = train_dataset_url)
 
-# Inspect the data
-print(train_dataset_fp) # viewing the first five rows of data
+# Viewing the first five rows of data to inspect it
+# with open(train_dataset_fp, newline = '') as data_file:
+# 	reader = csv.reader(data_file)
+# 	r=0
+# 	for row in reader:
+# 		print(row)
+# 		r+=1
+# 		if r>=5:
+# 			break
+
 
 # Parse dataset
 def parse_csv(line):
@@ -100,3 +109,40 @@ axes[1].set_xlabel('Epoch', fontsize = 14)
 axes[1].plot(train_accuracy_results)
 
 plt.show()
+
+
+# Setting up test dataset
+test_url = 'http:download.tensorflow.org/data/iris_test.csv'
+test_fp = tf.keras.utils.get_file(fname = os.path.basename(test_url), origin = test_url)
+
+test_dataset = tf.data.TextLineDataset(test_fp)
+test_dataset = test_dataset.skip(1)
+test_dataset = test_dataset.map(parse_csv)
+test_dataset = test_dataset.shuffle(1000)
+test_dataset = test_dataset.batch(32)
+
+# Evaluating the model on test dataset
+test_accuracy = tfe.metrics.Accuracy()
+
+for x, y in tfe.Iterator(test_dataset):
+	prediction = tf.argmax(model(x), axis = 1, output_type = tf.int32)
+	test_accuracy(prediction, y)
+
+print('Test set accuracy: {:3%}'.format(test_accuracy.result()))
+
+#Making predictions using trained model
+class_ids = ['Iris setosa', 'Iris versicolor', 'Iris verginica']
+
+predict_dataset = tf.convert_to_tensor([
+	[5.1, 3.3, 1.7, 0.5,],
+    [5.9, 3.0, 4.2, 1.5,],
+    [6.9, 3.1, 5.4, 2.1]
+	])
+
+prediction = model(predict_dataset)
+
+for i, logits in enumerate(prediction):
+	class_idx = tf.argmax(logits).numpy()
+	name = class_ids[class_idx]
+	print('Example {} prediction: {}'.format(i, name))
+
